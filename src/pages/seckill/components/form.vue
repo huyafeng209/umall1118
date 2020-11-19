@@ -38,7 +38,7 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="二级分类" label-width="120px" >
+        <el-form-item label="二级分类" label-width="120px">
           <el-select
             v-model="list.second_cateid"
             placeholder="请选择分类"
@@ -252,10 +252,17 @@ export default {
 
     //更新
     update() {
+      this.list.begintime = this.dateTime[0].getTime();
+      //结束的时间赋值
+      this.list.endtime = this.dateTime[1].getTime();
       this.check().then(() => {
+        //添加逻辑
         reqseckUpdata(this.list).then((res) => {
+          console.log(res);
           if (res.data.code == 200) {
-            successAlert("更新成功"), this.cancel();
+            successAlert("更新成功"), this.reqSeckList();
+            // this.reqseckDetail()
+            this.cancel();
             this.empty();
             this.getGoods();
           }
