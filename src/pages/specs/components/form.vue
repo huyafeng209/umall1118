@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="user">
+      <el-form :model="user" :rules="rules">
         <el-form-item label="规格名称" label-width="120px">
           <el-input v-model="user.specsname" autocomplete="off"></el-input>
         </el-form-item>
@@ -47,14 +47,19 @@ import {
   reqspecsAdd,
   reqspecsDetail,
   reqspecsUpdate,
-  reqspecsDel
+  reqspecsDel,
 } from "../../../utils/http";
-import { successAlert } from "../../../utils/alert";
+import { successAlert, errorAlert } from "../../../utils/alert";
 export default {
   //接收数据
   props: ["info"],
   data() {
     return {
+      rules: {
+        specsname: [
+          { required: true, message: "请输入规则名称", trigger: "change" },
+        ],
+      },
       user: {
         specsname: "",
         attrs: "",
@@ -93,47 +98,67 @@ export default {
         status: 1,
       };
       //属性值
-      this.attrArr = [{value:""}]
+      this.attrArr = [{ value: "" }];
+    },
+    //验证
+    check() {
+      return new Promise((resolve, reject) => {
+        if (this.user.specsname === "") {
+          errorAlert("规格不能为空");
+          return;
+        }
+        resolve();
+      });
     },
     //添加
     add() {
-      this.user.attrs = JSON.stringify(this.attrArr.map((item) => item.value));
-      reqspecsAdd(this.user).then((res) => {
-        if (res.data.code == 200) {
-          successAlert("添加成功");
-          this.cancel();
-          this.empty();
-          //刷新list表
-          this.reqList();
-          this.reqCount();
-        }
+      this.check().then(() => {
+        this.user.attrs = JSON.stringify(
+          this.attrArr.map((item) => item.value)
+        );
+        reqspecsAdd(this.user).then((res) => {
+          if (res.data.code == 200) {
+            successAlert("添加成功");
+            this.cancel();
+            this.empty();
+            //刷新list表
+            this.reqList();
+            this.reqCount();
+          }
+        });
       });
     },
-     //详情
-    getOne(id){
-        reqspecsDetail(id).then(res=>{
-            this.user=res.data.list[0]
-            //  '["s","M"]'-->[{value:"s"},{value:"M"}]
-            this.attrArr=JSON.parse(this.user.attrs).map(item=>({value:item}))
-        })
+    //详情
+    getOne(id) {
+      reqspecsDetail(id).then((res) => {
+        this.user = res.data.list[0];
+        //  '["s","M"]'-->[{value:"s"},{value:"M"}]
+        this.attrArr = JSON.parse(this.user.attrs).map((item) => ({
+          value: item,
+        }));
+      });
     },
     //更新
-    update(){
-        this.user.attrs =JSON.stringify(this.attrArr.map(item=>item.value))
-        reqspecsUpdate(this.user).then(res=>{
-            if(res.data.code==200){
-                successAlert("更新成功")
-                this.cancel()
-                this.empty()
-                this.reqList()
-            }
-        })
+    update() {
+      this.check().then(() => {
+        this.user.attrs = JSON.stringify(
+          this.attrArr.map((item) => item.value)
+        );
+        reqspecsUpdate(this.user).then((res) => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.cancel();
+            this.empty();
+            this.reqList();
+          }
+        });
+      });
     },
-     closed(){
-        if(this.info.title=="编辑规格"){
-            this.empty()
-        }
-     },
+    closed() {
+      if (this.info.title == "编辑规格") {
+        this.empty();
+      }
+    },
   },
   mounted() {},
 };

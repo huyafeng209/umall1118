@@ -1,36 +1,56 @@
 <template>
-  <div>
-    <el-button type="primary">添加</el-button>
-    <v-list></v-list>
+    <div>
+    <el-button type="primary" @click="willAdd">添加</el-button>
 
-    <v-form :info="info"></v-form>
+   
+    <v-list :info="info" @edit="edit"></v-list>
+
+    
+    <v-form :info="info" ref="form"></v-form>
   </div>
 </template>
+
 <script>
-import { mapGetters, mapActions } from "vuex";
-import vList from "./components/list"
-import vForm from "./components/form"
+import {mapGetters,mapActions} from "vuex"
+import vList from "./components/list.vue";
+import vForm from "./components/form.vue";
+import { reqseckList } from "../../utils/http";
 export default {
   components:{
     vList,
     vForm
   },
-  data(){
+  data() {
     return {
       info:{
-        isshow:false,
-        title:'添加秒杀'
+         isshow: false,
+        title: "添加分类"
       }
     }
   },
   computed: {
-    ...mapGetters({}),
+    ...mapGetters({})
   },
   methods: {
     ...mapActions({}),
+    willAdd(){
+    this.info={
+        isshow:true,
+        title:"活动添加"
+    }
   },
-  mounted() {},
-};
+  edit(id){
+    this.info={
+        isshow:true,
+        title:"活动编辑"
+    };
+    this.$refs.form.getOne(id);
+    
+  }
+  },
+  
+}
 </script>
+
 <style scoped>
 </style>

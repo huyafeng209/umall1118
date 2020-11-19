@@ -3,8 +3,8 @@
     <!-- 4.绑定数据到模板 -->
     <!-- 40 绑定closed -->
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="user">
-        <el-form-item label="所属角色" label-width="120px">
+      <el-form :model="user" :rules="rules">
+        <el-form-item label="所属角色" label-width="120px" prop="roleid">
           <!-- 9.通过v-model将user绑定到表单上 -->
           <el-select v-model="user.roleid" placeholder="请选择角色">
             <el-option
@@ -15,11 +15,11 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="用户名" label-width="120px">
+        <el-form-item label="用户名" label-width="120px" prop="username">
           <!-- 9.通过v-model将user绑定到表单上 -->
           <el-input v-model="user.username" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="密码" label-width="120px">
+        <el-form-item label="密码" label-width="120px" prop="password">
           <el-input v-model="user.password" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="状态" label-width="120px">
@@ -49,68 +49,99 @@ import {
   reqUserDetail,
   reqUserUpdate,
 } from "../../../utils/http";
-import { successAlert } from "../../../utils/alert";
+import { successAlert,errorAlert } from "../../../utils/alert";
 export default {
-    //接收info
-    props:["info"],
-    data(){
-        return {
-            //初始化user
-            user:{
-                roleid:"",
-                username:"",
-                password:"",
-                status:1
-            },
-            //角色列表
-            roleList:[]
-        }
-    },
+  //接收info
+  props: ["info"],
+  data() {
+    return {
+      rules: {
+        roleid: [
+          { required: true, message: "请选择角色", trigger: "change" },
+        ],
+        username: [
+          { required: true, message: "请输入用户名", trigger: "change" },
+        ],
+        password: [
+          { required: true, message: "请输入密码", trigger: "blur" },
+        ],
+      },
+      //初始化user
+      user: {
+        roleid: "",
+        username: "",
+        password: "",
+        status: 1,
+      },
+      //角色列表
+      roleList: [],
+    };
+  },
   computed: {
     ...mapGetters({}),
   },
   methods: {
     ...mapActions({}),
     //点击取消
-    cancel(){
-        this.info.isshow =false;    
+    cancel() {
+      this.info.isshow = false;
     },
     //清空数据
-    empty(){
-        this.user={
-            roleid:"",
-            username:"",
-            password:"",
-            status:1
+    empty() {
+      this.user = {
+        roleid: "",
+        username: "",
+        password: "",
+        status: 1,
+      };
+    },
+    check(){
+      return new Promise((resolve, reject)=>{
+         if (this.user.roleid === "") {
+          errorAlert("请选择角色");
+          return;
         }
+        if (this.user.username === "") {
+          errorAlert("请输入用户名");
+          return;
+        }
+        if (this.user.password === "") {
+          errorAlert("请输入密码");
+          return;
+        }
+          resolve();
+      })
     },
     //点击了添加按钮
-    add(){
-        //ajax
-        reqUserAdd(this.user).then(res=>{
-            if(res.data.code==200){
-                //成功
-                successAlert("添加成功");
-                //弹框消失
-                this.cancel();
-                //数据清空
-                this.empty();
-                //刷新list
-                this.$emit("init");
-            }
-        })
+    add() {
+       this.check().then(() => {
+      //ajax
+      reqUserAdd(this.user).then((res) => {
+        if (res.data.code == 200) {
+          //成功
+          successAlert("添加成功");
+          //弹框消失
+          this.cancel();
+          //数据清空
+          this.empty();
+          //刷新list
+          this.$emit("init");
+        }
+      });
+       });
     },
     //获取详情
     getOne(uid) {
-      reqUserDetail(uid).then(res => {
+      reqUserDetail(uid).then((res) => {
         //此刻user没有id,有uid,而修改要的就是uid
         this.user = res.data.list;
         //处理密码
-        this.user.password=""
+        this.user.password = "";
       });
     },
-   update() {
-      reqUserUpdate(this.user).then(res => {
+    update() {
+        this.check().then(() => {
+      reqUserUpdate(this.user).then((res) => {
         if (res.data.code == 200) {
           //弹成功
           successAlert("修改成功");
@@ -122,22 +153,23 @@ export default {
           this.$emit("init");
         }
       });
+       });
     },
     //41.处理消失
     closed() {
       if (this.info.title === "编辑管理员") {
         this.empty();
       }
-    }
+    },
   },
   mounted() {
     //   12.一进来，先获取菜单列表数据
-    reqRoleList().then(res => {
+    reqRoleList().then((res) => {
       if (res.data.code == 200) {
         this.roleList = res.data.list;
       }
     });
-  }
+  },
 };
 </script>
 

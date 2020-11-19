@@ -1,9 +1,9 @@
 <template>
   <div class="add">
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="user">
-        <el-form-item label="上级分类" label-width="120px">
-          <el-select v-model="user.pid" placeholder="请选择角色">
+      <el-form :model="user" :rules="rules">
+        <el-form-item label="上级分类" label-width="120px" prop="pid">
+          <el-select v-model="user.pid" placeholder="请选择角色" >
             <el-option :value="0" label="顶级分类"></el-option>
             <el-option
               v-for="item in cateList"
@@ -13,7 +13,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="分类名称" label-width="120px">
+        <el-form-item label="分类名称" label-width="120px" prop="catename">
           <el-input v-model="user.catename" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="图片" label-width="120px" v-if="user.pid !== 0">
@@ -22,9 +22,14 @@
           <!-- 如果添加成功，此时，input上的文件应该清掉，所以直接将input节点清除 -->
           <div class="myupload">
             <h3>+</h3>
-            <img class="img" v-if="imgUrl" :src="imgUrl" alt="">
-           
-            <input v-if="info.isshow" type="file" class="ipt" @change="changeFile">
+            <img class="img" v-if="imgUrl" :src="imgUrl" alt="" />
+
+            <input
+              v-if="info.isshow"
+              type="file"
+              class="ipt"
+              @change="changeFile"
+            />
           </div>
 
           <!-- 2.element-ui 上传文件 -->
@@ -63,15 +68,21 @@ import {
   reqRoleList,
   reqcateAdd,
   reqcateDetail,
-  reqcateUpdate
+  reqcateUpdate,
 } from "../../../utils/http";
 import { successAlert, errorAlert } from "../../../utils/alert";
-import path from "path"
+import path from "path";
 export default {
   //接收info
   props: ["info"],
   data() {
     return {
+      rules: {
+        pid: [{ required: true, message: "请输入上级分类", trigger: "change" }],
+        catename: [
+          { required: true, message: "请输入分类名称", trigger: "change" },
+        ],
+      },
       user: {
         pid: "",
         catename: "",
@@ -79,7 +90,7 @@ export default {
         status: 1,
       },
       //初始化图片路径
-       imgUrl: "",
+      imgUrl: "",
     };
   },
   computed: {
@@ -109,17 +120,16 @@ export default {
       //给user.img赋值
       this.user.img = file;
     },
-     //element-ui的上传文件
-    changeFile2(e){
-      let file=e.raw;
+    //element-ui的上传文件
+    changeFile2(e) {
+      let file = e.raw;
 
+      this.imgUrl = URL.createObjectURL(file);
 
-      this.imgUrl=URL.createObjectURL(file)
-
-      this.user.img=file;
+      this.user.img = file;
     },
     ...mapActions({
-        reqList:"cate/reqList"
+      reqList: "cate/reqList",
     }),
     //点了取消
     cancel() {
@@ -135,48 +145,65 @@ export default {
       };
       this.imgUrl = "";
     },
+    check() {
+      return new Promise((resolve, reject) => {
+        if (this.user.pid === "") {
+          errorAlert("上级分类不能为空");
+          return;
+        }
+        if (this.user.catename === "") {
+          errorAlert("分类名称为空");
+          return;
+        }
+        resolve();
+      });
+    },
     //点击了添加按钮
     add() {
-        console.log(111)
-      reqcateAdd(this.user).then((res) => {
-        if (res.data.code == 200) {
-          //弹成功
-          successAlert("添加成功");
-          //弹框消失
-          this.cancel();
-          //数据清空
-          this.empty();
-          //刷新list
-          this.reqList();
-        }
+      this.check().then(() => {
+        console.log(111);
+        reqcateAdd(this.user).then((res) => {
+          if (res.data.code == 200) {
+            //弹成功
+            successAlert("添加成功");
+            //弹框消失
+            this.cancel();
+            //数据清空
+            this.empty();
+            //刷新list
+            this.reqList();
+          }
+        });
       });
     },
     //获取详情
-    getOne(id){
-        reqcateDetail(id).then(res=>{
-            //没有id
-            this.user = res.data.list;
-            this.imgUrl = this.$imgPre + this.user.img;
-            //补id
-            this.user.id = id;
-        })
+    getOne(id) {
+      reqcateDetail(id).then((res) => {
+        //没有id
+        this.user = res.data.list;
+        this.imgUrl = this.$imgPre + this.user.img;
+        //补id
+        this.user.id = id;
+      });
     },
     //修改
-    update(){
-        reqcateUpdate(this.user).then(res=>{
-            if(res.data.code ==200){
-                successAlert("修改成功");
-                this.cancel();
-                this.empty();
-                this.reqList();
-            }
-        })
+    update() {
+      this.check().then(() => {
+        reqcateUpdate(this.user).then((res) => {
+          if (res.data.code == 200) {
+            successAlert("修改成功");
+            this.cancel();
+            this.empty();
+            this.reqList();
+          }
+        });
+      });
     },
     //处理消失
-    closed(){
-        if(this.info.title==="编辑分类"){
-            this.empty();
-        }
+    closed() {
+      if (this.info.title === "编辑分类") {
+        this.empty();
+      }
     },
   },
   mounted() {
@@ -198,6 +225,7 @@ export default {
   border: 1px dashed #ccc;
   position: relative;
 }
+
 .myupload h3 {
   width: 100%;
   height: 100px;
@@ -207,6 +235,7 @@ export default {
   color: #666;
   font-weight: 100;
 }
+
 .myupload .ipt {
   width: 100px;
   height: 100px;
@@ -215,6 +244,7 @@ export default {
   top: 0;
   opacity: 0;
 }
+
 .myupload .img {
   width: 100px;
   height: 100px;
@@ -223,27 +253,30 @@ export default {
   top: 0;
 }
 
- .add >>> .el-upload {
-    border: 1px dashed #d9d9d9;
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .avatar-uploader .el-upload:hover {
-    border-color: #409EFF;
-  }
-  .avatar-uploader-icon {
-    font-size: 28px;
-    color: #8c939d;
-    width: 178px;
-    height: 178px;
-    line-height: 178px;
-    text-align: center;
-  }
-  .avatar {
-    width: 178px;
-    height: 178px;
-    display: block;
-  }
+.add >>> .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-uploader .el-upload:hover {
+  border-color: #409EFF;
+}
+
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
 </style>

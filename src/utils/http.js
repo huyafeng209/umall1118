@@ -491,31 +491,36 @@ export const reqgoodsCount = () => {
 
 // ===========商品管理接口 结束====================
 
-
 // ===========秒杀接口 开始====================
 
-// 8.添加 文件
-export const reqseckAdd = (user) => {
-    let d=new FormData()
-    for(let i in user){
-        d.append(i,user[i])
-    }
+//添加
+export const reqseckAdd = (list) => {
+
     return axios({
         url: baseUrl + "/api/seckadd",
         method: "post",
-        data:d
+        data:qs.stringify(list)
     })
 }
-
-//18.列表 p={page:1,size:10}
-export const reqseckList = (p) => {
+//列表
+export const reqseckList=()=>{
     return axios({
-        url: baseUrl + "/api/secklist",
-        method: "get",
+        url:baseUrl+"/api/secklist",
+        method:"get",
+      
     })
 }
-
-//26.删除
+//详情页
+ export const reqseckDetail=(id)=>{
+     return axios({
+         url:baseUrl+"/api/seckinfo",
+         method:"get",
+         params:{
+            id:id
+         }
+     })
+ }
+ //删除
 export const reqseckDel = (id) => {
     return axios({
         url: baseUrl + "/api/seckdelete",
@@ -525,38 +530,14 @@ export const reqseckDel = (id) => {
         })
     })
 }
-
-// 33.详情
-export const reqseckDetail = id => {
-    return axios({
-        url: baseUrl + "/api/seckinfo",
-        method: "get",
-        params: {
-            id: id
-        }
-    })
-}
-
-
-
-// 38.修改 文件
-export const reqseckUpdate = (user) => {
-    let d=new FormData()
-    for(let i in user){
-        d.append(i,user[i])
-    }
+//更新
+export const reqseckUpdata = (list) => {
     return axios({
         url: baseUrl + "/api/seckedit",
         method: "post",
-        data: d
-    })
-}
-export const reqseckCount = () => {
-   
-    return axios({
-        url: baseUrl + "/api/seckcount",
-        method: "get",
+        data:qs.stringify(list
+            )
     })
 }
 
-// ===========秒杀接口 结束====================
+// ============秒杀接口 结束====================

@@ -1,9 +1,9 @@
 <template>
   <div class="add">
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="user">
+      <el-form :model="user" :rules="rules">
   
-        <el-form-item label="标题" label-width="120px">
+        <el-form-item label="标题" label-width="120px" prop="title">
           <el-input v-model="user.title" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="图片" label-width="120px" >
@@ -61,6 +61,11 @@ export default {
   props: ["info"],
   data() {
     return {
+      rules:{
+         title: [
+          { required: true, message: "请输入标题", trigger: "change" }
+        ],
+      },
       user: {
         title:"",
         img: null,
@@ -122,8 +127,22 @@ export default {
       };
       this.imgUrl = "";
     },
+    check(){
+      return new Promise((resolve, reject)=>{
+         if (this.user.title === "") {
+          errorAlert("请输入标题");
+          return;
+        }
+         if (!this.user.img) {
+          errorAlert("请选择图片");
+          return;
+        }
+         resolve();
+      })
+    },
     //点击了添加按钮
     add() {
+       this.check().then(() => {
         console.log(111)
       reqbannerAdd(this.user).then((res) => {
         if (res.data.code == 200) {
@@ -136,6 +155,7 @@ export default {
           //刷新list
           this.reqList();
         }
+      });
       });
     },
     //获取详情
@@ -150,6 +170,7 @@ export default {
     },
     //修改
     update(){
+       this.check().then(() => {
         reqbannerUpdate(this.user).then(res=>{
             if(res.data.code ==200){
                 successAlert("修改成功");
@@ -157,6 +178,7 @@ export default {
                 this.empty();
                 this.reqList();
             }
+        })
         })
     },
     //处理消失

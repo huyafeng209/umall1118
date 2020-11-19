@@ -7,7 +7,7 @@ import cate from "./modules/cate"
 import specs from "./modules/specs"
 import banner from "./modules/banner"
 import goods from "./modules/goods"
-import seckill from "./modules/seckill"
+import seck from "./modules/seck"
 export default new Vuex.Store({
     state,
     mutations,
@@ -18,6 +18,6 @@ export default new Vuex.Store({
         specs,
         banner,
         goods,
-        seckill
+        seck
     }
 })
