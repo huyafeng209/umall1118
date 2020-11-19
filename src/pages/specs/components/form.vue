@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="user" :rules="rules">
+      <el-form :model="user" :rules="rules" ref="formName">
         <el-form-item label="规格名称" label-width="120px">
           <el-input v-model="user.specsname" autocomplete="off"></el-input>
         </el-form-item>
@@ -42,6 +42,7 @@
 </template>
 
 <script>
+
 import { mapGetters, mapActions } from "vuex";
 import {
   reqspecsAdd,
@@ -100,22 +101,18 @@ export default {
       //属性值
       this.attrArr = [{ value: "" }];
     },
-    //验证
-    check() {
-      return new Promise((resolve, reject) => {
-        if (this.user.specsname === "") {
-          errorAlert("规格不能为空");
-          return;
-        }
-        resolve();
-      });
-    },
     //添加
     add() {
-      this.check().then(() => {
-        this.user.attrs = JSON.stringify(
-          this.attrArr.map((item) => item.value)
-        );
+        this.$refs.formName.validate((valid) => {
+        //添加逻辑
+        if (valid) {
+          if(this.attrArr.some(item=>item.value==="")){
+            errorAlert("请输入规格属性")
+            return;
+          }
+           this.user.attrs = JSON.stringify(
+            this.attrArr.map((item) => item.value)
+          );
         reqspecsAdd(this.user).then((res) => {
           if (res.data.code == 200) {
             successAlert("添加成功");
@@ -126,6 +123,8 @@ export default {
             this.reqCount();
           }
         });
+        }
+        return
       });
     },
     //详情
@@ -140,19 +139,26 @@ export default {
     },
     //更新
     update() {
-      this.check().then(() => {
-        this.user.attrs = JSON.stringify(
-          this.attrArr.map((item) => item.value)
-        );
+     this.$refs.formName.validate((valid) => {
+        if (valid) {
+          this.user.attrs = JSON.stringify(
+            this.attrArr.map((item) => item.value)
+          );
         reqspecsUpdate(this.user).then((res) => {
           if (res.data.code == 200) {
             successAlert("更新成功");
             this.cancel();
             this.empty();
             this.reqList();
-          }
-        });
+          }else {
+              errorAlert(res.data.msg);
+            }
+          });
+        } else {
+          errorAlert("添加失败");
+        }
       });
+      //添加逻辑
     },
     closed() {
       if (this.info.title == "编辑规格") {
