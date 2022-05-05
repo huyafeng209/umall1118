@@ -2,7 +2,7 @@
   <div>
     <el-container class="con">
       <el-aside width="200px">
-        <!-- 侧边栏导航 
+        <!-- 侧边栏导航
         background-color 背景色
         text-color 字体颜色
         active-text-color 激活的文字的颜色
@@ -19,7 +19,7 @@
         >
           <el-menu-item index="/">
             <i class="el-icon-menu"></i>
-            <span slot="title">首页这是我修改的20220505</span>
+            <span slot="title">首页</span>
           </el-menu-item>
 
           <!-- 动态侧边栏 -->
