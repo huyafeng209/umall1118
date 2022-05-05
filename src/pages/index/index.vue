@@ -19,7 +19,7 @@
         >
           <el-menu-item index="/">
             <i class="el-icon-menu"></i>
-            <span slot="title">首页2222222</span>
+            <span slot="title">首页这是我修改的20220505</span>
           </el-menu-item>
 
           <!-- 动态侧边栏 -->
